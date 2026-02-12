@@ -1,24 +1,44 @@
-# Weather Classification Challenge - 4th Place Solution
-**Team Name:** P. Asik kani
-**Final Score:** 0.719 (F1-Macro)
+Weather Classification Challenge - 4th Place Solution
+Team Name: P. Asik kani
+Final Score: 0.719 (F1-Macro)
 
-## 1. Model & Approach
-**Model Architecture:** Custom SE-ResNet (Squeeze-and-Excitation Residual Network)
+1. The Core Challenge: Generalization vs. Overfitting
+The biggest hurdle in this competition wasn't just classifying weather; it was dealing with the strict constraint of "No Pre-trained Models."
 
-Instead of relying on pre-trained weights (like VGG16 or ResNet50), I designed and trained a lightweight **ResNet** from scratch, enhanced with **Squeeze-and-Excitation (SE) Attention Blocks**.
+Without the safety net of ImageNet weights (like VGG16 or ResNet50), I had to train a model from scratch on a relatively small dataset.
 
-* **Residual Blocks:** Allow the network to learn deep features without the vanishing gradient problem.
-* **SE Blocks:** Explicitly model the inter-dependencies between channels. This "Feature Recalibration" allows the network to focus on informative features (like rain streaks or fog density) while suppressing less useful background noise.
+The Struggle: My initial custom CNNs suffered heavily from overfitting. They would rapidly hit 99% accuracy on the training set but perform poorly on the test set.
 
-## 2. Why I Chose This Model
-The challenge presented a significant **Domain Shift** between the training data (Earth images) and the test data (Alien/Mars-like images).
+The Diagnosis: The models were "memorizing" the training data. For example, they learned that "Blue Background = Cloudy" or "Grey Background = Foggy." This broke down completely on the Test Set, where lighting conditions varied (e.g., a "Sunrise" image might look hazy like fog, or a "Rain" image might be dark and grainy).
 
-* **Avoiding Overfitting:** Standard heavy models (like DenseNet121) tended to overfit to the specific colors of the training set. A custom, smaller SE-ResNet proved more robust to the color variations in the Alien dataset.
-* **Texture Priority:** The Squeeze-and-Excitation mechanism helped the model prioritize **structural patterns** (clouds, rain drops) over simple color matching, which was critical for classifying the tinted Alien images correctly.
+2. The Solution: A "Texture-Aware" Architecture
+To stop the model from cheating by looking at background colors, I needed an architecture that forced it to focus on structural details—like the vertical streaks of rain or the fluffiness of clouds.
 
-## 3. Preprocessing & Improvements
-To further address the domain shift, I implemented a strict preprocessing pipeline:
+My Choice: Custom SE-ResNet
+I engineered a lightweight Residual Network (ResNet) integrated with Squeeze-and-Excitation (SE) Attention Blocks.
 
-* **CLAHE (Contrast Limited Adaptive Histogram Equalization):** The Alien images had distinct, often dark or tinted lighting. I used CLAHE to normalize the Lightness channel (L in LAB color space). This enhanced the local contrast, making texture features like "fog" and "rain" visible even in low-light conditions.
-* **Label Smoothing (0.1):** Applied to the loss function to prevent the model from becoming "over-confident" on the training data, improving generalization.
-* **Test-Time Augmentation (TTA):** During inference, predictions were made on both the original image and a horizontally flipped version, and then averaged to ensure stability.
+Why SE-ResNet?
+Standard convolutions treat every pixel as equally important. The "Squeeze-and-Excitation" blocks add a layer of intelligence: they explicitly model the relationship between channels. This allows the network to say, "This feature map looks like rain streaks—pay attention to it," while ignoring irrelevant background noise.
+
+This architecture was the turning point where my model stopped overfitting and started actually learning the weather patterns.
+
+3. Preprocessing: Solving the "Lighting" Problem
+A major issue I noticed during data analysis was the inconsistent lighting in the test images. Some were over-exposed (too bright), while others were hidden in shadows.
+
+The Fix: CLAHE (Contrast Limited Adaptive Histogram Equalization)
+Standard brightness normalization wasn't enough. I implemented a pipeline that:
+
+Converts images to the LAB Color Space.
+
+Applies CLAHE specifically to the 'L' (Lightness) channel.
+
+Converts back to RGB.
+
+Why this mattered: This effectively "equalized" the dataset. It brought out hidden details in dark, foggy images and reduced the glare in bright sunrise images, giving the model a consistent input regardless of the time of day.
+
+4. Final Stabilizers
+To secure the 0.719 score, I added two final safeguards against overfitting:
+
+Label Smoothing (0.1): I realized my model was being "too confident" (predicting 100% probability), which is dangerous on unseen data. Label smoothing forced the model to be more conservative, improving robustness.
+
+Test-Time Augmentation (TTA): For the final submission, I ran inference on both the original image and a horizontally flipped version. Averaging these predictions acted as a "sanity check," filtering out random errors.
