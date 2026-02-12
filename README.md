@@ -42,3 +42,7 @@ To secure the 0.719 score, I added two final safeguards against overfitting:
 Label Smoothing (0.1): I realized my model was being "too confident" (predicting 100% probability), which is dangerous on unseen data. Label smoothing forced the model to be more conservative, improving robustness.
 
 Test-Time Augmentation (TTA): For the final submission, I ran inference on both the original image and a horizontally flipped version. Averaging these predictions acted as a "sanity check," filtering out random errors.
+
+
+
+GIT-HUB LINK: https://github.com/ASIKKANI/Weather-classifier-aws-competion
