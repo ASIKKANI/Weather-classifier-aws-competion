@@ -1,5 +1,5 @@
 Weather Classification Challenge - 4th Place Solution
-Team Name: P. Asik kani
+Name: P. Asik kani
 Final Score: 0.719 (F1-Macro)
 
 1. The Core Challenge: Generalization vs. Overfitting
