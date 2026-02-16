@@ -8,7 +8,7 @@
 ## 📖 Project Overview
 This project focuses on building a robust **Weather Classification Model** capable of handling severe **Domain Shift**. 
 
-The challenge involved training on standard, clear "Earth-like" images but testing on a dataset ("Alien/Mars") characterized by:
+The challenge involved training on standard, clear "Earth" images but testing on a dataset ("Alien") characterized by:
 * **Inconsistent Lighting:** Extreme shadows and overexposure.
 * **Color Shifts:** Tinted skies (red/green) that confuse standard color-based CNNs.
 * **Constraint:** **No Pre-trained Models allowed** (e.g., no ImageNet weights).
