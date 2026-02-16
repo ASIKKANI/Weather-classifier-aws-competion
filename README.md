@@ -1,48 +1,60 @@
-Weather Classification Challenge - 4th Place Solution
-Name: P. Asik kani
-Final Score: 0.719 (F1-Macro)
+# 🌦️ Weather Classification Challenge (Domain Shift)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.10%2B-orange?logo=tensorflow&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Completed-success)
+![Score](https://img.shields.io/badge/F1--Macro-0.719-green)
+![Rank](https://img.shields.io/badge/Rank-Top%20Tier-gold)
 
-1. The Core Challenge: Generalization vs. Overfitting
-The biggest hurdle in this competition wasn't just classifying weather; it was dealing with the strict constraint of "No Pre-trained Models."
+## 📖 Project Overview
+This project focuses on building a robust **Weather Classification Model** capable of handling severe **Domain Shift**. 
 
-Without the safety net of ImageNet weights (like VGG16 or ResNet50), I had to train a model from scratch on a relatively small dataset.
+The challenge involved training on standard, clear "Earth-like" images but testing on a dataset ("Alien/Mars") characterized by:
+* **Inconsistent Lighting:** Extreme shadows and overexposure.
+* **Color Shifts:** Tinted skies (red/green) that confuse standard color-based CNNs.
+* **Constraint:** **No Pre-trained Models allowed** (e.g., no ImageNet weights).
 
-The Struggle: My initial custom CNNs suffered heavily from overfitting. They would rapidly hit 99% accuracy on the training set but perform poorly on the test set.
+I engineered a **Custom SE-ResNet** from scratch to solve this, prioritizing structural texture features over color.
 
-The Diagnosis: The models were "memorizing" the training data. For example, they learned that "Blue Background = Cloudy" or "Grey Background = Foggy." This broke down completely on the Test Set, where lighting conditions varied (e.g., a "Sunrise" image might look hazy like fog, or a "Rain" image might be dark and grainy).
+---
 
-2. The Solution: A "Texture-Aware" Architecture
-To stop the model from cheating by looking at background colors, I needed an architecture that forced it to focus on structural details—like the vertical streaks of rain or the fluffiness of clouds.
+## 🛠️ The Solution
 
-My Choice: Custom SE-ResNet
-I engineered a lightweight Residual Network (ResNet) integrated with Squeeze-and-Excitation (SE) Attention Blocks.
+### 1. Architecture: Custom SE-ResNet
+Instead of standard transfer learning, I designed a specialized architecture:
+* **ResNet Backbone:** Uses Skip Connections to solve the Vanishing Gradient problem, allowing for a deep feature extractor.
+* **Squeeze-and-Excitation (SE) Blocks:** Integrated "Attention Mechanisms" that dynamically recalibrate channel importance. This allows the model to:
+    * *Amplify* relevant texture features (e.g., vertical rain streaks).
+    * *Suppress* misleading noise (e.g., alien sky colors).
 
-Why SE-ResNet?
-Standard convolutions treat every pixel as equally important. The "Squeeze-and-Excitation" blocks add a layer of intelligence: they explicitly model the relationship between channels. This allows the network to say, "This feature map looks like rain streaks—pay attention to it," while ignoring irrelevant background noise.
+### 2. Data Centric Engineering: CLAHE Preprocessing
+Standard normalization failed due to the lighting variance in the test set. I implemented **CLAHE (Contrast Limited Adaptive Histogram Equalization)** in the **LAB Color Space**:
+1.  Convert RGB image to LAB.
+2.  Apply CLAHE to the **L (Lightness)** channel only.
+3.  Convert back to RGB.
+*Result: This "normalized" the lighting conditions, revealing hidden cloud/fog details in dark images without distorting color information.*
 
-This architecture was the turning point where my model stopped overfitting and started actually learning the weather patterns.
+---
 
-3. Preprocessing: Solving the "Lighting" Problem
-A major issue I noticed during data analysis was the inconsistent lighting in the test images. Some were over-exposed (too bright), while others were hidden in shadows.
+## 📊 Performance & Strategy
 
-The Fix: CLAHE (Contrast Limited Adaptive Histogram Equalization)
-Standard brightness normalization wasn't enough. I implemented a pipeline that:
+| Metric | Score |
+| :--- | :--- |
+| **F1-Macro** | **0.719** |
+| **Rank** | **4th Place** |
 
-Converts images to the LAB Color Space.
+**Key Techniques:**
+* **Optimizer:** `Adam` with adaptive learning rates.
+* **Regularization:** `Label Smoothing (0.1)` to prevent overconfidence on noisy data.
+* **Inference:** **Test-Time Augmentation (TTA)**. Predictions are averaged across original and horizontally flipped images to ensure stability.
 
-Applies CLAHE specifically to the 'L' (Lightness) channel.
+---
 
-Converts back to RGB.
+## 📂 Project Structure
 
-Why this mattered: This effectively "equalized" the dataset. It brought out hidden details in dark, foggy images and reduced the glare in bright sunrise images, giving the model a consistent input regardless of the time of day.
-
-4. Final Stabilizers
-To secure the 0.719 score, I added two final safeguards against overfitting:
-
-Label Smoothing (0.1): I realized my model was being "too confident" (predicting 100% probability), which is dangerous on unseen data. Label smoothing forced the model to be more conservative, improving robustness.
-
-Test-Time Augmentation (TTA): For the final submission, I ran inference on both the original image and a horizontally flipped version. Averaging these predictions acted as a "sanity check," filtering out random errors.
-
-
-
-GIT-HUB LINK: https://github.com/ASIKKANI/Weather-classifier-aws-competion
+```bash
+├── dataset/
+│   ├── train/          # 5 Classes: Cloudy, Foggy, Rainy, Shine, Sunrise
+│   └── alien_test/     # The shifted domain test set
+├── aws8.ipynb          # Main Jupyter Notebook (Training & Inference)
+├── submission.csv      # Final predictions
+└── README.md           # Project Documentation
